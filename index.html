@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1d9e75">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Hábitos">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%231d9e75'/%3E%3Cpath d='M60 95l20 20 42-46' stroke='white' stroke-width='14' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Rastreador de Hábitos</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface-soft: #efeee8;
+    --text: #2c2c2a;
+    --text-soft: #5f5e5a;
+    --text-muted: #97968f;
+    --border: #e3e1d9;
+    --pos-text: #0f6e56;
+    --pos-bg: #e1f5ee;
+    --neg-text: #993c1d;
+    --neg-bg: #faece7;
+    --danger: #a32d2d;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #262624;
+      --surface-soft: #2f2f2c;
+      --text: #f1efe8;
+      --text-soft: #b4b2a9;
+      --text-muted: #888780;
+      --border: #3a3a37;
+      --pos-text: #5dcaa5;
+      --pos-bg: #0f3a2e;
+      --neg-text: #f0997b;
+      --neg-bg: #3a2015;
+      --danger: #e24b4a;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px);
+  }
+  header { padding: 20px 0 8px; }
+  header h1 { font-size: 22px; font-weight: 600; margin: 0; }
+  header p { font-size: 14px; color: var(--text-soft); margin: 4px 0 0; }
+
+  .scoreboard {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin: 16px 0 24px;
+  }
+  .score-card {
+    border-radius: var(--radius-lg);
+    padding: 14px 8px; text-align: center;
+  }
+  .score-card .label { font-size: 12px; margin: 0 0 4px; }
+  .score-card .value { font-size: 26px; font-weight: 700; margin: 0; line-height: 1; }
+  .sc-pos { background: var(--pos-bg); }
+  .sc-pos .label, .sc-pos .value { color: var(--pos-text); }
+  .sc-neg { background: var(--neg-bg); }
+  .sc-neg .label, .sc-neg .value { color: var(--neg-text); }
+  .sc-net { background: var(--surface-soft); }
+  .sc-net .label { color: var(--text-soft); }
+  .sc-net .value { color: var(--text); }
+
+  .section-head {
+    display: flex; align-items: center; gap: 8px;
+    margin: 8px 0 10px; font-size: 16px; font-weight: 600;
+  }
+  .section-head .dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700;
+  }
+  .dot-pos { background: var(--pos-bg); color: var(--pos-text); }
+  .dot-neg { background: var(--neg-bg); color: var(--neg-text); }
+
+  .list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 10px 12px;
+  }
+  .row .ico {
+    width: 38px; height: 38px; flex: none; border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .ico-pos { background: var(--pos-bg); color: var(--pos-text); }
+  .ico-neg { background: var(--neg-bg); color: var(--neg-text); }
+  .row .name {
+    flex: 1; font-size: 15px; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .count {
+    min-width: 38px; text-align: center; font-size: 17px; font-weight: 700;
+    border-radius: var(--radius); padding: 4px 0;
+  }
+  .count-pos { background: var(--pos-bg); color: var(--pos-text); }
+  .count-neg { background: var(--neg-bg); color: var(--neg-text); }
+
+  button {
+    font-family: inherit; cursor: pointer; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    border-radius: var(--radius); transition: transform .08s, background .15s;
+  }
+  button:active { transform: scale(0.93); }
+  .btn-step {
+    width: 38px; height: 38px; flex: none; font-size: 22px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .btn-del {
+    width: 38px; height: 38px; flex: none; font-size: 18px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); background: transparent;
+  }
+
+  .add-bar { display: flex; gap: 8px; margin-bottom: 26px; }
+  .add-bar select, .add-bar input {
+    font-family: inherit; font-size: 16px; height: 44px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); border-radius: var(--radius); padding: 0 10px;
+  }
+  .add-bar select { width: 62px; flex: none; text-align: center; }
+  .add-bar input { flex: 1; min-width: 0; }
+  .add-bar button {
+    height: 44px; padding: 0 16px; font-size: 15px; font-weight: 600;
+    white-space: nowrap; flex: none;
+  }
+
+  .footer {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px;
+  }
+  .footer .status { font-size: 12px; color: var(--text-muted); }
+  .btn-reset {
+    font-size: 13px; color: var(--danger); background: transparent;
+    border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius);
+  }
+  .empty { font-size: 13px; color: var(--text-muted); padding: 6px 2px; margin: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rastreador de Hábitos</h1>
+  <p>Marque cada situação ao longo do dia.</p>
+</header>
+
+<div class="scoreboard">
+  <div class="score-card sc-pos">
+    <p class="label">Positivos</p>
+    <p class="value" id="pos-total">0</p>
+  </div>
+  <div class="score-card sc-net">
+    <p class="label">Saldo</p>
+    <p class="value" id="net-total">0</p>
+  </div>
+  <div class="score-card sc-neg">
+    <p class="label">Negativos</p>
+    <p class="value" id="neg-total">0</p>
+  </div>
+</div>
+
+<div class="section-head"><span class="dot dot-pos">+</span> Situações positivas</div>
+<div class="list" id="pos-list"></div>
+<div class="add-bar">
+  <select id="pos-icon" aria-label="Ícone"></select>
+  <input id="pos-new" type="text" placeholder="Nova atividade positiva" />
+  <button id="pos-add">Adicionar</button>
+</div>
+
+<div class="section-head"><span class="dot dot-neg">−</span> Situações negativas</div>
+<div class="list" id="neg-list"></div>
+<div class="add-bar">
+  <select id="neg-icon" aria-label="Ícone"></select>
+  <input id="neg-new" type="text" placeholder="Nova atividade negativa" />
+  <button id="neg-add">Adicionar</button>
+</div>
+
+<div class="footer">
+  <span class="status" id="save-status">Salvo automaticamente</span>
+  <button class="btn-reset" id="reset-btn">Zerar tudo</button>
+</div>
+
+<script>
+(function () {
+  var ICONS = {
+    'cerebro': '🧠', 'olho': '👁️', 'corrida': '🏃', 'pessoas': '👥',
+    'celular': '📱', 'copo': '🥤', 'roupa': '👕', 'livro': '📖',
+    'coracao': '❤️', 'caminhar': '🚶', 'cama': '🛏️', 'sol': '☀️',
+    'lua': '🌙', 'cafe': '☕', 'cigarro': '🚬', 'pizza': '🍕',
+    'agua': '💧', 'sino': '🔔', 'musica': '🎵', 'folha': '🍃',
+    'estrela': '⭐', 'fogo': '🔥', 'mao': '🙌', 'relogio': '⏰'
+  };
+  var ICON_KEYS = Object.keys(ICONS);
+
+  var DEFAULTS = {
+    positive: [
+      { id: 'p1', name: 'Meditar', count: 0, icon: 'cerebro' },
+      { id: 'p2', name: 'Parar e Observar', count: 0, icon: 'olho' },
+      { id: 'p3', name: 'Exercício', count: 0, icon: 'corrida' },
+      { id: 'p4', name: 'Interagir', count: 0, icon: 'pessoas' }
+    ],
+    negative: [
+      { id: 'n1', name: 'Telas múltiplas', count: 0, icon: 'celular' },
+      { id: 'n2', name: 'Copos espalhados', count: 0, icon: 'copo' },
+      { id: 'n3', name: 'Roupas fora do lugar', count: 0, icon: 'roupa' }
+    ]
+  };
+
+  var KEY = 'rastreador-habitos-v1';
+  var state = { positive: [], negative: [] };
+
+  function save() {
+    var status = document.getElementById('save-status');
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      status.textContent = '✓ Salvo';
+      setTimeout(function () { status.textContent = 'Salvo automaticamente'; }, 1100);
+    } catch (e) {
+      status.textContent = 'Erro ao salvar';
+    }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        state = JSON.parse(raw);
+        if (!state.positive) state.positive = [];
+        if (!state.negative) state.negative = [];
+        state.positive.forEach(function (i) { if (!i.icon) i.icon = 'estrela'; });
+        state.negative.forEach(function (i) { if (!i.icon) i.icon = 'fogo'; });
+      } else {
+        state = JSON.parse(JSON.stringify(DEFAULTS));
+        save();
+      }
+    } catch (e) {
+      state = JSON.parse(JSON.stringify(DEFAULTS));
+    }
+  }
+
+  function uid() {
+    return 'a' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36);
+  }
+
+  function fillPicker(id) {
+    var sel = document.getElementById(id);
+    ICON_KEYS.forEach(function (k) {
+      var opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = ICONS[k];
+      sel.appendChild(opt);
+    });
+  }
+
+  function makeRow(item, kind) {
+    var isPos = kind === 'positive';
+    var row = document.createElement('div');
+    row.className = 'row';
+
+    var ico = document.createElement('span');
+    ico.className = 'ico ' + (isPos ? 'ico-pos' : 'ico-neg');
+    ico.textContent = ICONS[item.icon] || (isPos ? '⭐' : '🔥');
+
+    var name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = item.name;
+
+    var minus = document.createElement('button');
+    minus.className = 'btn-step';
+    minus.textContent = '−';
+    minus.setAttribute('aria-label', 'Remover ponto');
+    minus.onclick = function () { item.count = Math.max(0, item.count - 1); save(); render(); };
+
+    var count = document.createElement('span');
+    count.className = 'count ' + (isPos ? 'count-pos' : 'count-neg');
+    count.textContent = item.count;
+
+    var plus = document.createElement('button');
+    plus.className = 'btn-step';
+    plus.textContent = '+';
+    plus.setAttribute('aria-label', 'Adicionar ponto');
+    plus.onclick = function () { item.count += 1; save(); render(); };
+
+    var del = document.createElement('button');
+    del.className = 'btn-del';
+    del.textContent = '🗑';
+    del.setAttribute('aria-label', 'Excluir atividade');
+    del.onclick = function () {
+      if (confirm('Excluir "' + item.name + '"?')) {
+        state[kind] = state[kind].filter(function (x) { return x.id !== item.id; });
+        save(); render();
+      }
+    };
+
+    row.appendChild(ico);
+    row.appendChild(name);
+    row.appendChild(minus);
+    row.appendChild(count);
+    row.appendChild(plus);
+    row.appendChild(del);
+    return row;
+  }
+
+  function render() {
+    var posList = document.getElementById('pos-list');
+    var negList = document.getElementById('neg-list');
+    posList.innerHTML = '';
+    negList.innerHTML = '';
+
+    if (!state.positive.length) {
+      posList.innerHTML = '<p class="empty">Nenhuma atividade. Adicione uma abaixo.</p>';
+    } else {
+      state.positive.forEach(function (i) { posList.appendChild(makeRow(i, 'positive')); });
+    }
+    if (!state.negative.length) {
+      negList.innerHTML = '<p class="empty">Nenhuma atividade. Adicione uma abaixo.</p>';
+    } else {
+      state.negative.forEach(function (i) { negList.appendChild(makeRow(i, 'negative')); });
+    }
+
+    var pT = state.positive.reduce(function (s, i) { return s + i.count; }, 0);
+    var nT = state.negative.reduce(function (s, i) { return s + i.count; }, 0);
+    document.getElementById('pos-total').textContent = pT;
+    document.getElementById('neg-total').textContent = nT;
+    document.getElementById('net-total').textContent = pT - nT;
+  }
+
+  function addActivity(kind) {
+    var input = document.getElementById(kind === 'positive' ? 'pos-new' : 'neg-new');
+    var iconSel = document.getElementById(kind === 'positive' ? 'pos-icon' : 'neg-icon');
+    var val = input.value.trim();
+    if (!val) return;
+    state[kind].push({ id: uid(), name: val, count: 0, icon: iconSel.value });
+    input.value = '';
+    iconSel.selectedIndex = 0;
+    save(); render();
+  }
+
+  document.getElementById('pos-add').onclick = function () { addActivity('positive'); };
+  document.getElementById('neg-add').onclick = function () { addActivity('negative'); };
+  document.getElementById('pos-new').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addActivity('positive'); e.target.blur(); } });
+  document.getElementById('neg-new').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addActivity('negative'); e.target.blur(); } });
+  document.getElementById('reset-btn').onclick = function () {
+    if (confirm('Zerar tudo e voltar às atividades originais?')) {
+      state = JSON.parse(JSON.stringify(DEFAULTS));
+      save(); render();
+    }
+  };
+
+  fillPicker('pos-icon');
+  fillPicker('neg-icon');
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
