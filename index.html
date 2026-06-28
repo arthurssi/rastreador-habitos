@@ -64,10 +64,7 @@
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 10px; margin: 16px 0 24px;
   }
-  .score-card {
-    border-radius: var(--radius-lg);
-    padding: 14px 8px; text-align: center;
-  }
+  .score-card { border-radius: var(--radius-lg); padding: 14px 8px; text-align: center; }
   .score-card .label { font-size: 12px; margin: 0 0 4px; }
   .score-card .value { font-size: 26px; font-weight: 700; margin: 0; line-height: 1; }
   .sc-pos { background: var(--pos-bg); }
@@ -91,8 +88,9 @@
   .dot-neg { background: var(--neg-bg); color: var(--neg-text); }
 
   .list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .item-wrap { display: flex; flex-direction: column; gap: 6px; }
   .row {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 8px;
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius-lg); padding: 10px 12px;
   }
@@ -107,7 +105,7 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .count {
-    min-width: 38px; text-align: center; font-size: 17px; font-weight: 700;
+    min-width: 34px; text-align: center; font-size: 16px; font-weight: 700;
     border-radius: var(--radius); padding: 4px 0;
   }
   .count-pos { background: var(--pos-bg); color: var(--pos-text); }
@@ -118,16 +116,61 @@
     background: var(--surface); color: var(--text);
     border-radius: var(--radius); transition: transform .08s, background .15s;
   }
-  button:active { transform: scale(0.93); }
+  button:active { transform: scale(0.92); }
   .btn-step {
-    width: 38px; height: 38px; flex: none; font-size: 22px; line-height: 1;
+    width: 36px; height: 36px; flex: none; font-size: 22px; line-height: 1;
     display: flex; align-items: center; justify-content: center; padding: 0;
   }
+  .btn-note {
+    height: 36px; flex: none; padding: 0 9px; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    position: relative;
+  }
+  .btn-note.active-pos { background: var(--pos-bg); color: var(--pos-text); border-color: transparent; }
+  .btn-note.active-neg { background: var(--neg-bg); color: var(--neg-text); border-color: transparent; }
+  .btn-note .badge { font-size: 11px; font-weight: 700; }
   .btn-del {
-    width: 38px; height: 38px; flex: none; font-size: 18px; padding: 0;
+    width: 36px; height: 36px; flex: none; font-size: 17px; padding: 0;
     display: flex; align-items: center; justify-content: center;
     color: var(--text-muted); background: transparent;
   }
+
+  .notes-panel {
+    background: var(--surface-soft); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 12px;
+  }
+  .notes-panel .nhead { margin: 0 0 8px; font-size: 12px; color: var(--text-soft); }
+  .notes-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .note-line {
+    display: flex; align-items: flex-start; gap: 8px;
+    background: var(--surface); border-radius: var(--radius); padding: 8px 10px;
+  }
+  .note-chk {
+    flex: none; width: 26px; height: 26px; padding: 0; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; color: var(--text-muted);
+  }
+  .note-chk.done-pos { color: var(--pos-text); }
+  .note-chk.done-neg { color: var(--neg-text); }
+  .note-text { flex: 1; font-size: 13px; line-height: 1.4; word-break: break-word; padding-top: 3px; }
+  .note-text.done { text-decoration: line-through; color: var(--text-muted); }
+  .note-rm {
+    flex: none; width: 26px; height: 26px; padding: 0; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; color: var(--text-muted);
+  }
+  .notes-empty { margin: 0 0 8px; font-size: 12px; color: var(--text-muted); }
+  .note-add { display: flex; gap: 6px; }
+  .note-add input {
+    flex: 1; font-size: 14px; height: 38px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); border-radius: var(--radius); padding: 0 10px;
+  }
+  .note-add button {
+    flex: none; padding: 0 14px; font-size: 16px; font-weight: 600;
+  }
+  .note-add button.pos { background: var(--pos-bg); color: var(--pos-text); border-color: transparent; }
+  .note-add button.neg { background: var(--neg-bg); color: var(--neg-text); border-color: transparent; }
 
   .add-bar { display: flex; gap: 8px; margin-bottom: 26px; }
   .add-bar select, .add-bar input {
@@ -157,22 +200,13 @@
 <body>
 <header>
   <h1>Rastreador de Hábitos</h1>
-  <p>Marque cada situação ao longo do dia.</p>
+  <p>Marque cada situação e anote os detalhes.</p>
 </header>
 
 <div class="scoreboard">
-  <div class="score-card sc-pos">
-    <p class="label">Positivos</p>
-    <p class="value" id="pos-total">0</p>
-  </div>
-  <div class="score-card sc-net">
-    <p class="label">Saldo</p>
-    <p class="value" id="net-total">0</p>
-  </div>
-  <div class="score-card sc-neg">
-    <p class="label">Negativos</p>
-    <p class="value" id="neg-total">0</p>
-  </div>
+  <div class="score-card sc-pos"><p class="label">Positivos</p><p class="value" id="pos-total">0</p></div>
+  <div class="score-card sc-net"><p class="label">Saldo</p><p class="value" id="net-total">0</p></div>
+  <div class="score-card sc-neg"><p class="label">Negativos</p><p class="value" id="neg-total">0</p></div>
 </div>
 
 <div class="section-head"><span class="dot dot-pos">+</span> Situações positivas</div>
@@ -210,20 +244,21 @@
 
   var DEFAULTS = {
     positive: [
-      { id: 'p1', name: 'Meditar', count: 0, icon: 'cerebro' },
-      { id: 'p2', name: 'Parar e Observar', count: 0, icon: 'olho' },
-      { id: 'p3', name: 'Exercício', count: 0, icon: 'corrida' },
-      { id: 'p4', name: 'Interagir', count: 0, icon: 'pessoas' }
+      { id: 'p1', name: 'Meditar', count: 0, icon: 'cerebro', notes: [] },
+      { id: 'p2', name: 'Parar e Observar', count: 0, icon: 'olho', notes: [] },
+      { id: 'p3', name: 'Exercício', count: 0, icon: 'corrida', notes: [] },
+      { id: 'p4', name: 'Interagir', count: 0, icon: 'pessoas', notes: [] }
     ],
     negative: [
-      { id: 'n1', name: 'Telas múltiplas', count: 0, icon: 'celular' },
-      { id: 'n2', name: 'Copos espalhados', count: 0, icon: 'copo' },
-      { id: 'n3', name: 'Roupas fora do lugar', count: 0, icon: 'roupa' }
+      { id: 'n1', name: 'Telas múltiplas', count: 0, icon: 'celular', notes: [] },
+      { id: 'n2', name: 'Copos espalhados', count: 0, icon: 'copo', notes: [] },
+      { id: 'n3', name: 'Roupas fora do lugar', count: 0, icon: 'roupa', notes: [] }
     ]
   };
 
   var KEY = 'rastreador-habitos-v1';
   var state = { positive: [], negative: [] };
+  var openNotes = {};
 
   function save() {
     var status = document.getElementById('save-status');
@@ -243,8 +278,12 @@
         state = JSON.parse(raw);
         if (!state.positive) state.positive = [];
         if (!state.negative) state.negative = [];
-        state.positive.forEach(function (i) { if (!i.icon) i.icon = 'estrela'; });
-        state.negative.forEach(function (i) { if (!i.icon) i.icon = 'fogo'; });
+        ['positive','negative'].forEach(function (k) {
+          state[k].forEach(function (i) {
+            if (!i.icon) i.icon = k === 'positive' ? 'estrela' : 'fogo';
+            if (!Array.isArray(i.notes)) i.notes = [];
+          });
+        });
       } else {
         state = JSON.parse(JSON.stringify(DEFAULTS));
         save();
@@ -268,8 +307,92 @@
     });
   }
 
+  function makeNotesPanel(item, kind) {
+    var isPos = kind === 'positive';
+    var panel = document.createElement('div');
+    panel.className = 'notes-panel';
+
+    var head = document.createElement('p');
+    head.className = 'nhead';
+    head.textContent = 'Anotações de "' + item.name + '"';
+    panel.appendChild(head);
+
+    var listWrap = document.createElement('div');
+    listWrap.className = 'notes-list';
+
+    if (!item.notes.length) {
+      var empty = document.createElement('p');
+      empty.className = 'notes-empty';
+      empty.textContent = 'Nenhuma anotação ainda.';
+      listWrap.appendChild(empty);
+    } else {
+      item.notes.forEach(function (note) {
+        var line = document.createElement('div');
+        line.className = 'note-line';
+
+        var chk = document.createElement('button');
+        chk.className = 'note-chk' + (note.done ? (isPos ? ' done-pos' : ' done-neg') : '');
+        chk.textContent = note.done ? '☑' : '☐';
+        chk.setAttribute('aria-label', note.done ? 'Desmarcar' : 'Marcar como feito');
+        chk.onclick = function () { note.done = !note.done; save(); render(); };
+
+        var txt = document.createElement('span');
+        txt.className = 'note-text' + (note.done ? ' done' : '');
+        txt.textContent = note.text;
+
+        var rm = document.createElement('button');
+        rm.className = 'note-rm';
+        rm.textContent = '✕';
+        rm.setAttribute('aria-label', 'Excluir anotação');
+        rm.onclick = function () {
+          item.notes = item.notes.filter(function (n) { return n.id !== note.id; });
+          save(); render();
+        };
+
+        line.appendChild(chk);
+        line.appendChild(txt);
+        line.appendChild(rm);
+        listWrap.appendChild(line);
+      });
+    }
+    panel.appendChild(listWrap);
+
+    var addRow = document.createElement('div');
+    addRow.className = 'note-add';
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Escreva um detalhe ou lembrete';
+    input.id = 'note-input-' + item.id;
+    var addBtn = document.createElement('button');
+    addBtn.className = isPos ? 'pos' : 'neg';
+    addBtn.textContent = '+';
+    addBtn.setAttribute('aria-label', 'Adicionar anotação');
+
+    function addNote() {
+      var v = input.value.trim();
+      if (!v) return;
+      item.notes.push({ id: uid(), text: v, done: false });
+      input.value = '';
+      save(); render();
+      setTimeout(function () {
+        var again = document.getElementById('note-input-' + item.id);
+        if (again) again.focus();
+      }, 0);
+    }
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') addNote(); });
+    addBtn.onclick = addNote;
+    addRow.appendChild(input);
+    addRow.appendChild(addBtn);
+    panel.appendChild(addRow);
+
+    return panel;
+  }
+
   function makeRow(item, kind) {
     var isPos = kind === 'positive';
+    var wrap = document.createElement('div');
+    wrap.className = 'item-wrap';
+
     var row = document.createElement('div');
     row.className = 'row';
 
@@ -280,6 +403,13 @@
     var name = document.createElement('span');
     name.className = 'name';
     name.textContent = item.name;
+
+    var noteBtn = document.createElement('button');
+    var isOpen = !!openNotes[item.id];
+    noteBtn.className = 'btn-note' + (isOpen ? (isPos ? ' active-pos' : ' active-neg') : '');
+    noteBtn.innerHTML = '📝' + (item.notes.length ? '<span class="badge">' + item.notes.length + '</span>' : '');
+    noteBtn.setAttribute('aria-label', 'Anotações');
+    noteBtn.onclick = function () { openNotes[item.id] = !openNotes[item.id]; render(); };
 
     var minus = document.createElement('button');
     minus.className = 'btn-step';
@@ -302,19 +432,26 @@
     del.textContent = '🗑';
     del.setAttribute('aria-label', 'Excluir atividade');
     del.onclick = function () {
-      if (confirm('Excluir "' + item.name + '"?')) {
+      if (confirm('Excluir "' + item.name + '" e suas anotações?')) {
         state[kind] = state[kind].filter(function (x) { return x.id !== item.id; });
+        delete openNotes[item.id];
         save(); render();
       }
     };
 
     row.appendChild(ico);
     row.appendChild(name);
+    row.appendChild(noteBtn);
     row.appendChild(minus);
     row.appendChild(count);
     row.appendChild(plus);
     row.appendChild(del);
-    return row;
+    wrap.appendChild(row);
+
+    if (openNotes[item.id]) {
+      wrap.appendChild(makeNotesPanel(item, kind));
+    }
+    return wrap;
   }
 
   function render() {
@@ -346,7 +483,7 @@
     var iconSel = document.getElementById(kind === 'positive' ? 'pos-icon' : 'neg-icon');
     var val = input.value.trim();
     if (!val) return;
-    state[kind].push({ id: uid(), name: val, count: 0, icon: iconSel.value });
+    state[kind].push({ id: uid(), name: val, count: 0, icon: iconSel.value, notes: [] });
     input.value = '';
     iconSel.selectedIndex = 0;
     save(); render();
@@ -357,8 +494,9 @@
   document.getElementById('pos-new').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addActivity('positive'); e.target.blur(); } });
   document.getElementById('neg-new').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addActivity('negative'); e.target.blur(); } });
   document.getElementById('reset-btn').onclick = function () {
-    if (confirm('Zerar tudo e voltar às atividades originais?')) {
+    if (confirm('Zerar todos os pontos e apagar todas as anotações?')) {
       state = JSON.parse(JSON.stringify(DEFAULTS));
+      openNotes = {};
       save(); render();
     }
   };
